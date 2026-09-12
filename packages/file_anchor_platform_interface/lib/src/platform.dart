@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'anchor_token.dart';
+import 'errors.dart';
 import 'models.dart';
 
 /// The contract every `file_anchor` platform implementation fulfils.
@@ -99,7 +100,12 @@ abstract class FileAnchorPlatform extends PlatformInterface {
       throw UnimplementedError('stat() has not been implemented.');
 
   /// Opens a byte stream over [relativePath], optionally a `[start, end)` range.
-  Stream<List<int>> openRead(
+  ///
+  /// Returns a `Future` of a stream, not a bare stream, so that a missing entry
+  /// or a revoked grant fails with a typed [AnchorError] *before* streaming
+  /// begins. Surfacing those as stream errors instead pushes error handling
+  /// into the consumer's `await for`, where it is routinely forgotten.
+  Future<Stream<List<int>>> openRead(
     AnchorToken token,
     String relativePath, {
     int? start,

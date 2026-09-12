@@ -1,0 +1,27 @@
+name: file_anchor_android
+description: Android implementation of file_anchor, using the Storage Access Framework for durable folder and file access.
+version: 0.1.0
+repository: https://github.com/Code-Making/file_anchor
+resolution: workspace
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  file_anchor_platform_interface: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    implements: file_anchor
+    platforms:
+      android:
+        package: com.codemaking.file_anchor
+        pluginClass: FileAnchorPlugin
+        dartPluginClass: FileAnchorAndroid

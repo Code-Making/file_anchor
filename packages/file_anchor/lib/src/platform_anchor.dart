@@ -61,7 +61,7 @@ final class PlatformAnchor implements Anchor {
     String relativePath, {
     int? start,
     int? end,
-  }) async =>
+  }) =>
       _platform.openRead(_token, relativePath, start: start, end: end);
 
   @override
