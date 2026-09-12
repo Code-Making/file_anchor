@@ -1,0 +1,9 @@
+name: _file_anchor_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+workspace:
+  - packages/file_anchor_platform_interface
+  - packages/file_anchor

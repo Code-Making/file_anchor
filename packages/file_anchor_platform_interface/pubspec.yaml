@@ -1,0 +1,18 @@
+name: file_anchor_platform_interface
+description: A common platform interface for the file_anchor plugin, providing durable file and folder access.
+version: 0.1.0
+repository: https://github.com/Code-Making/file_anchor
+resolution: workspace
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

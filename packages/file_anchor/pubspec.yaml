@@ -1,0 +1,29 @@
+name: file_anchor
+description: Pick a file or folder once and keep durable access to it across restarts and reboots, on Android, iOS and Windows.
+version: 0.1.0
+repository: https://github.com/Code-Making/file_anchor
+resolution: workspace
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  file_anchor_platform_interface: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platform_interface_package: file_anchor_platform_interface
+    platforms:
+      android:
+        default_package: file_anchor_android
+      ios:
+        default_package: file_anchor_ios
+      windows:
+        default_package: file_anchor_windows
