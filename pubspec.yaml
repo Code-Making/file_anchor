@@ -8,3 +8,4 @@ workspace:
   - packages/file_anchor_platform_interface
   - packages/file_anchor
   - packages/file_anchor_android
+  - packages/file_anchor_android/example

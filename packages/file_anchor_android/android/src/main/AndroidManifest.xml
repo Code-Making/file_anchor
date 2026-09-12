@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- No permissions are declared on purpose. The Storage Access Framework
+         grants access per user selection, which is exactly why it needs no
+         READ_EXTERNAL_STORAGE and works unchanged on scoped storage. -->
+</manifest>

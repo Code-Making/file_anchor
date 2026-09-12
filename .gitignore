@@ -1,7 +1,27 @@
+# Dart / Flutter
 .dart_tool/
 .packages
+.flutter-plugins
+.flutter-plugins-dependencies
 build/
 pubspec.lock
 *.iml
 .idea/
+
+# Gradle / Android
+.gradle/
+local.properties
+captures/
+*.jks
+key.properties
+
+# Xcode / CocoaPods
+Pods/
+Podfile.lock
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+
+# OS
 .DS_Store

@@ -21,9 +21,7 @@ flutter:
   plugin:
     platform_interface_package: file_anchor_platform_interface
     platforms:
+      # Each platform is declared only once its implementation package exists;
+      # pub refuses to resolve a default_package that is not there yet.
       android:
         default_package: file_anchor_android
-      ios:
-        default_package: file_anchor_ios
-      windows:
-        default_package: file_anchor_windows
