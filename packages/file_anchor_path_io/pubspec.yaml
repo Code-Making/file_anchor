@@ -1,0 +1,19 @@
+name: file_anchor_path_io
+description: Shared dart:io engine implementing file_anchor for platforms that expose real filesystem paths.
+version: 0.1.0
+repository: https://github.com/Code-Making/file_anchor
+resolution: workspace
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  file_anchor_platform_interface: ^0.1.0
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
