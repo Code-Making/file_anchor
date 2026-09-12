@@ -1,0 +1,29 @@
+name: file_anchor_windows
+description: Windows implementation of file_anchor, using IFileOpenDialog and durable filesystem paths.
+version: 0.1.0
+repository: https://github.com/Code-Making/file_anchor
+resolution: workspace
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  ffi: ^2.1.0
+  file_anchor_path_io: ^0.1.0
+  file_anchor_platform_interface: ^0.1.0
+  flutter:
+    sdk: flutter
+  win32: ^5.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    implements: file_anchor
+    platforms:
+      windows:
+        # A Dart-only implementation: no pluginClass, because there is no C++.
+        dartPluginClass: FileAnchorWindows

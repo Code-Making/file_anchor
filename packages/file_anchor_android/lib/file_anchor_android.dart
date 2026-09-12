@@ -4,5 +4,4 @@
 /// automatically.
 library;
 
-export 'src/error_codes.dart' show AnchorErrorCode;
 export 'src/file_anchor_android.dart' show FileAnchorAndroid;

@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 
 import 'channel_write_sink.dart';
 import 'codecs.dart';
-import 'error_codes.dart';
 
 /// The Android implementation of `file_anchor`, backed by the Storage Access
 /// Framework.

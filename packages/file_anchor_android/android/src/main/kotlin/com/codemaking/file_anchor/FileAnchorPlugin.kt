@@ -221,7 +221,8 @@ class FileAnchorPlugin :
      *
      * The `purpose` argument is accepted and ignored here: Android's document
      * picker shows no caller-supplied prompt, and inventing a dialog to carry
-     * one would be a worse experience than the platform's own UI. iOS uses it.
+     * one would be a worse experience than the platform's own UI. iOS has no
+     * such API either; only macOS can show it, through NSOpenPanel.message.
      */
     private fun beginPick(
         result: MethodChannel.Result,

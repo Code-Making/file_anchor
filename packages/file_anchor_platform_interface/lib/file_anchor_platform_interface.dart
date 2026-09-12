@@ -6,6 +6,7 @@ library;
 
 export 'src/anchor_token.dart';
 export 'src/capabilities.dart';
+export 'src/channel_errors.dart';
 export 'src/errors.dart';
 export 'src/models.dart';
 export 'src/platform.dart';

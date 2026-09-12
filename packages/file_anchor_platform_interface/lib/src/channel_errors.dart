@@ -1,16 +1,20 @@
-import 'package:file_anchor_platform_interface/file_anchor_platform_interface.dart';
 import 'package:flutter/services.dart';
 
-/// Error codes the Kotlin side sends, and their [AnchorError] counterparts.
+import 'errors.dart';
+
+/// Error codes a native implementation sends, and their [AnchorError] counterparts.
 ///
-/// The native layer classifies failures because only it can tell, for example, a
-/// revoked grant from an unmounted volume. Dart's job is to make sure nothing
-/// escapes as a raw [PlatformException].
+/// Shared by every implementation that talks over a method channel, so there is
+/// exactly one place where a native failure becomes a typed error.
+///
+/// The native layer classifies because only it can tell, for example, a revoked
+/// grant from an unmounted volume. Dart's job is to ensure nothing escapes as a
+/// raw [PlatformException].
 abstract final class AnchorErrorCode {
-  /// The document moved or was renamed.
+  /// The target moved or was renamed.
   static const String stale = 'file_anchor/stale';
 
-  /// The persisted URI permission is gone.
+  /// The durable grant is gone.
   static const String revoked = 'file_anchor/revoked';
 
   /// The volume is not mounted right now.
@@ -22,13 +26,13 @@ abstract final class AnchorErrorCode {
   /// The persisted grant limit was reached.
   static const String quotaExceeded = 'file_anchor/quota_exceeded';
 
-  /// No document at the requested path.
+  /// Nothing at the requested path.
   static const String notFound = 'file_anchor/not_found';
 
-  /// The operation cannot be expressed through the Storage Access Framework.
+  /// The operation cannot be expressed on this platform.
   static const String unsupported = 'file_anchor/unsupported';
 
-  /// The URI was not a usable SAF document tree.
+  /// The native handle was not usable as an anchor.
   static const String malformedToken = 'file_anchor/malformed_token';
 
   /// Anything else.

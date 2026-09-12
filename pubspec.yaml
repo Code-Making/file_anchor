@@ -9,4 +9,8 @@ workspace:
   - packages/file_anchor
   - packages/file_anchor_path_io
   - packages/file_anchor_android
-  - packages/file_anchor_android/example
+  - packages/file_anchor_ios
+  - packages/file_anchor_linux
+  - packages/file_anchor_macos
+  - packages/file_anchor_windows
+  - example

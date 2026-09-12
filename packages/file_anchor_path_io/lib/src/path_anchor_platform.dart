@@ -59,7 +59,7 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
   @override
   Future<ResolvedAnchor> resolve(AnchorToken token) async {
     final root = await rootPathOf(token);
-    await _assertReachable(root);
+    await assertReachable(root);
     return ResolvedAnchor(
       token: token,
       displayName: p.basename(root).isEmpty ? root : p.basename(root),
@@ -69,6 +69,7 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
 
   /// Verifies the anchor root is there, with the right error when it is not.
   ///
+  ///
   /// The three missing-target cases are genuinely different and callers must
   /// respond differently, so they are separated here:
   ///
@@ -77,20 +78,18 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
   /// * no ancestor exists, so a whole volume or share is detached --
   ///   [AnchorUnavailable], retry later and do *not* re-prompt;
   /// * it exists but cannot be read -- [AnchorPermissionDenied].
-  Future<void> _assertReachable(String root) async {
+  @protected
+  Future<void> assertReachable(String root) async {
     final type = await FileSystemEntity.type(root, followLinks: true);
     if (type != FileSystemEntityType.notFound) {
       try {
         if (type == FileSystemEntityType.directory) {
-          await Directory(root).list(followLinks: false).first.catchError(
-                // An empty directory is fine; only a failure matters.
-                (Object _) => throw const _Empty(),
-              );
+          // take(1) reads at most one entry and yields an empty list for an
+          // empty directory, which must not look like a read failure.
+          await Directory(root).list(followLinks: false).take(1).toList();
         } else {
           await File(root).length();
         }
-      } on _Empty {
-        // Readable and empty.
       } on FileSystemException catch (e) {
         throw AnchorPermissionDenied(
           'The anchor exists but cannot be read: ${e.osError?.message ?? e.message}',
@@ -178,7 +177,7 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
       return;
     }
     if (type == FileSystemEntityType.notFound) {
-      await _assertReachable(root);
+      await assertReachable(root);
     }
 
     final stream = Directory(root).list(recursive: recursive, followLinks: false);
@@ -378,9 +377,4 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
       _ => AnchorIoFailure('I/O failure for "$target": $message', e),
     };
   }
-}
-
-/// Sentinel used to distinguish "readable but empty" from a read failure.
-final class _Empty implements Exception {
-  const _Empty();
 }

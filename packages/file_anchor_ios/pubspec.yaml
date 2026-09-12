@@ -1,0 +1,27 @@
+name: file_anchor_ios
+description: iOS implementation of file_anchor, using UIDocumentPickerViewController and security-scoped bookmarks.
+version: 0.1.0
+repository: https://github.com/Code-Making/file_anchor
+resolution: workspace
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  file_anchor_path_io: ^0.1.0
+  file_anchor_platform_interface: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    implements: file_anchor
+    platforms:
+      ios:
+        pluginClass: FileAnchorIosPlugin
+        dartPluginClass: FileAnchorIOS

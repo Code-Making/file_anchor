@@ -1,0 +1,28 @@
+name: file_anchor_linux
+description: Linux implementation of file_anchor, using the XDG desktop portal and durable filesystem paths.
+version: 0.1.0
+repository: https://github.com/Code-Making/file_anchor
+resolution: workspace
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  dbus: ^0.7.10
+  file_anchor_path_io: ^0.1.0
+  file_anchor_platform_interface: ^0.1.0
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    implements: file_anchor
+    platforms:
+      linux:
+        # A Dart-only implementation: no pluginClass, because there is no C.
+        dartPluginClass: FileAnchorLinux
