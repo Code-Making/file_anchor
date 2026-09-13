@@ -1,1 +1,14 @@
 include: ../../analysis_options.yaml
+
+analyzer:
+  # Pre-declared so Flutter's `pub get` auto-migration has nothing to rewrite.
+  # Since 3.47 the tool appends these exclusions itself on every pub get, which
+  # dirties the working tree and makes `pub publish` refuse to publish.
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**

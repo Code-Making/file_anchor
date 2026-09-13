@@ -2,6 +2,16 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  # Pre-declared so Flutter's `pub get` auto-migration has nothing to rewrite;
+  # since 3.47 it appends these itself and dirties the working tree.
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
   language:
     strict-casts: true
     strict-inference: true
