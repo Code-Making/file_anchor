@@ -30,17 +30,17 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   file_anchor:
-    path: ../packages/file_anchor
+    path: ../
   file_anchor_android:
-    path: ../packages/file_anchor_android
+    path: ../../file_anchor_android
   file_anchor_ios:
-    path: ../packages/file_anchor_ios
+    path: ../../file_anchor_ios
   file_anchor_linux:
-    path: ../packages/file_anchor_linux
+    path: ../../file_anchor_linux
   file_anchor_macos:
-    path: ../packages/file_anchor_macos
+    path: ../../file_anchor_macos
   file_anchor_windows:
-    path: ../packages/file_anchor_windows
+    path: ../../file_anchor_windows
   flutter:
     sdk: flutter
 

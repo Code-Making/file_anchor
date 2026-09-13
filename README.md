@@ -47,7 +47,7 @@ cd packages/file_anchor && flutter test
 One example app in [`example/`](example) builds for every platform:
 
 ```bash
-cd example
+cd packages/file_anchor/example
 flutter build apk --debug      # Android
 flutter build macos --debug    # macOS
 flutter build ios --debug --no-codesign
