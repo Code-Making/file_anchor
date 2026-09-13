@@ -98,5 +98,20 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
+      # Flutter 3.47+ rewrites analysis_options.yaml during pub get to add
+      # build and platform exclusions. The repository already declares them, but
+      # if the tool's exact formatting differs it will rewrite anyway, and
+      # `pub publish` refuses to run against a dirty tree. Surface the churn as
+      # a warning, then discard it: it is tool output, not an uncommitted edit,
+      # and it has nothing to do with whether the archive is publishable.
+      - name: Discard tool-generated churn
+        run: |
+          if ! git diff --quiet; then
+            echo "::warning::flutter pub get modified tracked files:"
+            git diff --stat
+            git checkout -- .
+          else
+            echo "working tree clean after pub get"
+          fi
       - run: flutter pub publish --dry-run
         working-directory: packages/${{ matrix.package }}
