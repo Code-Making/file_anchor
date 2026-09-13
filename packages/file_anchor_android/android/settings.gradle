@@ -1,0 +1,11 @@
+// Names this Gradle build explicitly.
+//
+// Without it the root project takes its name from the directory -- "android" --
+// and so does every other android/ directory in the repository. An IDE
+// importing more than one of them then fails with "A project with the name
+// android already exists" and "Duplicate root element androidJava(0)".
+//
+// Only used when this directory is opened on its own, as an IDE does. When the
+// example app builds the plugin, it is included as a subproject and this file
+// is ignored.
+rootProject.name = 'file_anchor_android'

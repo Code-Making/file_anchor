@@ -23,4 +23,8 @@ plugins {
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
 }
 
+// Named explicitly so this build does not collide with the plugin's own
+// android/ directory when an IDE imports both.
+rootProject.name = "file_anchor_example"
+
 include(":app")
