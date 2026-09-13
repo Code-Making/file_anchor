@@ -51,6 +51,12 @@ public class FileAnchorMacosPlugin: NSObject, FlutterPlugin {
       beginAccess(call, result)
     case "endAccess":
       endAccess(call, result)
+    // Sent by Dart as it registers. A hot restart replaces the Dart isolate
+    // while this plugin keeps running, so scopes opened by the previous
+    // isolate are still held with nobody left to balance them.
+    case "reset":
+      releaseAllScopes()
+      result(nil)
     case "release":
       // A bookmark needs no handing back; forgetting it in Dart is enough.
       result(nil)
@@ -239,4 +245,24 @@ public class FileAnchorMacosPlugin: NSObject, FlutterPlugin {
     }
     result(nil)
   }
+
+  // MARK: - Teardown
+
+  /// Closes every scope this plugin still holds.
+  ///
+  /// Apple requires `startAccessingSecurityScopedResource` to be balanced. A
+  /// scope left open leaks a kernel resource for the life of the process, and
+  /// nothing in Dart can close it once the isolate that opened it is gone.
+  private func releaseAllScopes() {
+    for (path, depth) in scopeDepth where depth > 0 {
+      scopedUrls[path]?.stopAccessingSecurityScopedResource()
+    }
+    scopeDepth.removeAll()
+    scopedUrls.removeAll()
+  }
+
+  public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
+    releaseAllScopes()
+  }
+
 }

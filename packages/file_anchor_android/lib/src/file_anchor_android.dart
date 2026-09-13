@@ -40,7 +40,26 @@ final class FileAnchorAndroid extends FileAnchorPlatform {
   ///
   /// Called by Flutter's generated plugin registrant.
   static void registerWith() {
-    FileAnchorPlatform.instance = FileAnchorAndroid();
+    final instance = FileAnchorAndroid();
+    FileAnchorPlatform.instance = instance;
+    // A hot restart replaces the Dart isolate while the plugin keeps running,
+    // so sessions opened by the previous isolate are still open natively with
+    // nobody left to close them. Registration is the one moment we are
+    // guaranteed to run in both cases, so clear that state here.
+    unawaited(instance.resetNative());
+  }
+
+  /// Drops native state left behind by a previous Dart isolate.
+  ///
+  /// Safe to call against an older native side that does not implement it: the
+  /// failure is swallowed, because there is nothing a caller could do about it.
+  @visibleForTesting
+  Future<void> resetNative() async {
+    try {
+      await _void('reset');
+    } on AnchorError {
+      // Nothing to recover from; the worst case is the pre-existing leak.
+    }
   }
 
   // ---------------------------------------------------------------- plumbing

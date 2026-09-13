@@ -99,6 +99,34 @@ void main() {
     });
   });
 
+  group('lifecycle', () {
+    test(
+      'resetNative tells the native side to drop orphaned sessions',
+      () async {
+        native.handlers['reset'] = (_) => null;
+        await android.resetNative();
+        expect(native.methods, contains('reset'));
+      },
+    );
+
+    test(
+      'resetNative survives a native side that does not implement it',
+      () async {
+        native.handlers['reset'] = (_) =>
+            throw MissingPluginException('older native side');
+        // Registration must never throw: the worst case is the leak we were
+        // already living with.
+        await expectLater(android.resetNative(), completes);
+      },
+    );
+
+    test('a reset failure is not reported to callers', () async {
+      native.handlers['reset'] = (_) =>
+          throw PlatformException(code: AnchorErrorCode.io);
+      await expectLater(android.resetNative(), completes);
+    });
+  });
+
   group('token guarding', () {
     test('rejects a token from another platform with a typed error', () async {
       final windowsToken = AnchorToken.of(AnchorKind.path, r'C:\Vault');

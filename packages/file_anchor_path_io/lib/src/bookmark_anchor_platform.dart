@@ -62,6 +62,22 @@ abstract base class BookmarkAnchorPlatform extends PathAnchorPlatform {
     persistsAcrossReboot: true,
   );
 
+  /// Drops native state left behind by a previous Dart isolate.
+  ///
+  /// A hot restart replaces the isolate while the plugin keeps running, so an
+  /// access scope opened before the restart stays open with nobody left to
+  /// balance it. Apple leaks that scope for the life of the process.
+  ///
+  /// Safe against an older native side that does not implement it.
+  Future<void> resetNative() async {
+    _pathCache.clear();
+    try {
+      await _invokeVoid('reset', const {});
+    } on AnchorError {
+      // Nothing to recover from; the worst case is the pre-existing leak.
+    }
+  }
+
   // ---------------------------------------------------------------- plumbing
 
   Future<Map<String, Object?>?> _invoke(

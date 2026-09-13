@@ -49,6 +49,7 @@ class FileAnchorPlugin :
             "beginList", "listNext", "endList",
             "beginRead", "readChunk", "endRead",
             "beginWrite", "writeChunk", "endWrite",
+            "reset",
         )
     }
 
@@ -76,13 +77,28 @@ class FileAnchorPlugin :
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
         store = SafStore(context)
+        // A previous detach shut the worker down. The same plugin instance can
+        // be attached to another engine, and every call would then be rejected
+        // by a dead executor.
+        if (io.isShutdown) io = Executors.newSingleThreadExecutor()
         channel = MethodChannel(binding.binaryMessenger, CHANNEL)
         channel.setMethodCallHandler(this)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
-        // Abandon anything still open rather than leaking a file descriptor.
+        closeAllSessions()
+        io.shutdown()
+    }
+
+    /**
+     * Abandons every open session.
+     *
+     * Used both when the engine goes away and when Dart restarts. A session
+     * holds a real file descriptor, and a write session holds a document open,
+     * so leaving them is not harmless.
+     */
+    private fun closeAllSessions() {
         for (session in sessions.clear()) {
             when (session) {
                 is ListSession -> session.close()
@@ -90,7 +106,6 @@ class FileAnchorPlugin :
                 is WriteSession -> session.abort()
             }
         }
-        io.shutdown()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -144,6 +159,14 @@ class FileAnchorPlugin :
     }
 
     private fun dispatch(call: MethodCall): Any? = when (call.method) {
+        // Sent by Dart as it registers. On a hot restart the Dart isolate is
+        // replaced while this plugin keeps running, so sessions opened by the
+        // previous isolate are still here with nobody left to close them.
+        "reset" -> {
+            closeAllSessions()
+            null
+        }
+
         "resolve" -> store.describe(uriArg(call))
 
         "release" -> {

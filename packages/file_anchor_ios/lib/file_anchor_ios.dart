@@ -3,6 +3,8 @@
 /// App authors should depend on `file_anchor`; this package registers itself.
 library;
 
+import 'dart:async';
+
 import 'package:file_anchor_path_io/file_anchor_path_io.dart';
 import 'package:file_anchor_platform_interface/file_anchor_platform_interface.dart';
 
@@ -19,6 +21,10 @@ import 'package:file_anchor_platform_interface/file_anchor_platform_interface.da
 final class FileAnchorIOS extends BookmarkAnchorPlatform {
   /// Registers this class as the platform implementation.
   static void registerWith() {
-    FileAnchorPlatform.instance = FileAnchorIOS();
+    final instance = FileAnchorIOS();
+    FileAnchorPlatform.instance = instance;
+    // Clears any access scope still held from before a hot restart; see
+    // BookmarkAnchorPlatform.resetNative.
+    unawaited(instance.resetNative());
   }
 }
