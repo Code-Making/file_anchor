@@ -54,13 +54,13 @@ abstract base class BookmarkAnchorPlatform extends PathAnchorPlatform {
 
   @override
   AnchorCapabilities get capabilities => const AnchorCapabilities(
-        canRandomAccessWrite: true,
-        canRename: true,
-        canQueryFreeSpace: false,
-        // The whole reason `use()` exists.
-        requiresExplicitScope: true,
-        persistsAcrossReboot: true,
-      );
+    canRandomAccessWrite: true,
+    canRename: true,
+    canQueryFreeSpace: false,
+    // The whole reason `use()` exists.
+    requiresExplicitScope: true,
+    persistsAcrossReboot: true,
+  );
 
   // ---------------------------------------------------------------- plumbing
 
@@ -72,7 +72,9 @@ abstract base class BookmarkAnchorPlatform extends PathAnchorPlatform {
       final raw = await channel.invokeMethod<Object?>(method, args);
       if (raw == null) return null;
       if (raw is! Map) {
-        throw AnchorIoFailure('$method returned ${raw.runtimeType}, wanted a map.');
+        throw AnchorIoFailure(
+          '$method returned ${raw.runtimeType}, wanted a map.',
+        );
       }
       return raw.map((k, v) => MapEntry(k.toString(), v));
     } on PlatformException catch (e) {
@@ -186,10 +188,12 @@ abstract base class BookmarkAnchorPlatform extends PathAnchorPlatform {
   Future<ResolvedAnchor?> pickFile({
     String? purpose,
     List<String>? mimeTypes,
-  }) =>
-      _pick('pickFile', {'purpose': purpose, 'mimeTypes': mimeTypes});
+  }) => _pick('pickFile', {'purpose': purpose, 'mimeTypes': mimeTypes});
 
-  Future<ResolvedAnchor?> _pick(String method, Map<String, Object?> args) async {
+  Future<ResolvedAnchor?> _pick(
+    String method,
+    Map<String, Object?> args,
+  ) async {
     final map = await _invoke(method, args);
     // Cancellation is not an error.
     if (map == null) return null;

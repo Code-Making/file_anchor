@@ -3,6 +3,7 @@ import 'capabilities.dart';
 
 /// One entry inside an anchored directory.
 final class AnchorEntry {
+  /// Creates an entry description.
   const AnchorEntry({
     required this.relativePath,
     required this.isDirectory,
@@ -42,6 +43,7 @@ final class AnchorEntry {
 
 /// Metadata for a single entry.
 final class AnchorStat {
+  /// Creates entry metadata.
   const AnchorStat({
     required this.isDirectory,
     this.size,
@@ -64,6 +66,7 @@ final class AnchorStat {
 
 /// What a platform returns when a token is successfully resolved.
 final class ResolvedAnchor {
+  /// Creates a resolve result.
   const ResolvedAnchor({
     required this.token,
     required this.displayName,

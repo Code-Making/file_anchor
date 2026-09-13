@@ -109,8 +109,7 @@ extension AnchorIo on Anchor {
   Future<String> readAsString(
     String relativePath, {
     Encoding encoding = utf8,
-  }) async =>
-      encoding.decode(await readAsBytes(relativePath));
+  }) async => encoding.decode(await readAsBytes(relativePath));
 
   /// Writes [bytes] to [relativePath], replacing any existing content.
   Future<void> writeBytes(
@@ -130,6 +129,5 @@ extension AnchorIo on Anchor {
     String contents, {
     Encoding encoding = utf8,
     bool append = false,
-  }) =>
-      writeBytes(relativePath, encoding.encode(contents), append: append);
+  }) => writeBytes(relativePath, encoding.encode(contents), append: append);
 }

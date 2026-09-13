@@ -1,4 +1,3 @@
-
 import 'package:file_anchor_android/file_anchor_android.dart';
 import 'package:file_anchor_platform_interface/file_anchor_platform_interface.dart';
 import 'package:flutter/services.dart';
@@ -35,7 +34,8 @@ void main() {
   late FakeNativeSide native;
   late FileAnchorAndroid android;
 
-  const safToken = 'content://com.android.externalstorage.documents/tree/primary%3AVault';
+  const safToken =
+      'content://com.android.externalstorage.documents/tree/primary%3AVault';
 
   AnchorToken token() => AnchorToken.of(AnchorKind.saf, safToken);
 
@@ -67,8 +67,8 @@ void main() {
 
     for (final entry in cases.entries) {
       test('${entry.key} becomes the right typed error', () async {
-        native.handlers['exists'] =
-            (_) => throw PlatformException(code: entry.key, message: 'nope');
+        native.handlers['exists'] = (_) =>
+            throw PlatformException(code: entry.key, message: 'nope');
         await expectLater(
           android.exists(token(), 'a.txt'),
           throwsA(entry.value),
@@ -76,14 +76,19 @@ void main() {
       });
     }
 
-    test('an unrecognised code degrades to AnchorIoFailure, never leaks', () async {
-      native.handlers['exists'] =
-          (_) => throw PlatformException(code: 'file_anchor/from_the_future');
-      await expectLater(
-        android.exists(token(), 'a.txt'),
-        throwsA(allOf(isA<AnchorIoFailure>(), isNot(isA<PlatformException>()))),
-      );
-    });
+    test(
+      'an unrecognised code degrades to AnchorIoFailure, never leaks',
+      () async {
+        native.handlers['exists'] = (_) =>
+            throw PlatformException(code: 'file_anchor/from_the_future');
+        await expectLater(
+          android.exists(token(), 'a.txt'),
+          throwsA(
+            allOf(isA<AnchorIoFailure>(), isNot(isA<PlatformException>())),
+          ),
+        );
+      },
+    );
 
     test('a missing plugin registration is reported as unsupported', () async {
       native.handlers['exists'] = (_) => throw MissingPluginException('gone');
@@ -129,10 +134,10 @@ void main() {
 
     test('a pick builds a durable SAF token from the returned uri', () async {
       native.handlers['pickDirectory'] = (_) => {
-            'uri': safToken,
-            'displayName': 'Vault',
-            'canRename': true,
-          };
+        'uri': safToken,
+        'displayName': 'Vault',
+        'canRename': true,
+      };
       final resolved = await android.pickDirectory(purpose: 'Choose vault');
       expect(resolved!.token.kind, AnchorKind.saf);
       expect(resolved.token.payload, safToken);
@@ -144,8 +149,11 @@ void main() {
       native.handlers['resolve'] = (_) => {'uri': safToken, 'displayName': 'V'};
       final resolved = await android.resolve(token());
       expect(resolved.capabilities.requiresExplicitScope, isFalse);
-      expect(resolved.capabilities.canRandomAccessWrite, isFalse,
-          reason: 'SAF documents are append/replace only');
+      expect(
+        resolved.capabilities.canRandomAccessWrite,
+        isFalse,
+        reason: 'SAF documents are append/replace only',
+      );
     });
   });
 
@@ -174,35 +182,49 @@ void main() {
       final entries = await android.list(token()).toList();
       expect(entries.map((e) => e.relativePath), ['a.md', 'sub', 'b.md']);
       expect(entries[1].isDirectory, isTrue);
-      expect(native.methods, containsAllInOrder(['beginList', 'listNext', 'listNext', 'endList']));
+      expect(
+        native.methods,
+        containsAllInOrder(['beginList', 'listNext', 'listNext', 'endList']),
+      );
       expect(native.argsFor('endList')['session'], 7);
     });
 
     test('closes the session even when a page fails midway', () async {
       native.handlers['beginList'] = (_) => 9;
-      native.handlers['listNext'] =
-          (_) => throw PlatformException(code: AnchorErrorCode.revoked);
+      native.handlers['listNext'] = (_) =>
+          throw PlatformException(code: AnchorErrorCode.revoked);
       await expectLater(
         android.list(token()).toList(),
         throwsA(isA<AnchorRevoked>()),
       );
-      expect(native.methods, contains('endList'),
-          reason: 'a leaked native session is a real cost');
+      expect(
+        native.methods,
+        contains('endList'),
+        reason: 'a leaked native session is a real cost',
+      );
     });
 
-    test('requests a batch size rather than one entry per round trip', () async {
-      native.handlers['beginList'] = (_) => 1;
-      native.handlers['listNext'] = (_) => {'entries': [], 'done': true};
-      await android.list(token()).toList();
-      expect(native.argsFor('listNext')['batch'],
-          FileAnchorAndroid.listBatchSize);
-    });
+    test(
+      'requests a batch size rather than one entry per round trip',
+      () async {
+        native.handlers['beginList'] = (_) => 1;
+        native.handlers['listNext'] = (_) => {
+          'entries': <Object?>[],
+          'done': true,
+        };
+        await android.list(token()).toList();
+        expect(
+          native.argsFor('listNext')['batch'],
+          FileAnchorAndroid.listBatchSize,
+        );
+      },
+    );
   });
 
   group('reading', () {
     test('a missing document fails before streaming starts', () async {
-      native.handlers['beginRead'] =
-          (_) => throw PlatformException(code: AnchorErrorCode.notFound);
+      native.handlers['beginRead'] = (_) =>
+          throw PlatformException(code: AnchorErrorCode.notFound);
       // The point of Future<Stream>: this throws here, not inside `await for`.
       await expectLater(
         android.openRead(token(), 'gone.md'),
@@ -221,28 +243,43 @@ void main() {
       native.handlers['readChunk'] = (_) => pages[i++];
 
       final stream = await android.openRead(token(), 'a.bin');
-      final bytes = (await stream.toList()).expand((c) => c).toList();
+      final bytes = (await stream.toList()).expand<int>((c) => c).toList();
 
       expect(bytes, [1, 2, 3, 4, 5]);
       expect(native.methods.last, 'endRead');
-      expect(native.argsFor('readChunk')['size'], FileAnchorAndroid.readChunkSize);
+      expect(
+        native.argsFor('readChunk')['size'],
+        FileAnchorAndroid.readChunkSize,
+      );
     });
 
     test('forwards a byte range', () async {
       native.handlers['beginRead'] = (_) => 1;
       native.handlers['readChunk'] = (_) => Uint8List(0);
-      await (await android.openRead(token(), 'a.bin', start: 10, end: 20)).toList();
+      await (await android.openRead(
+        token(),
+        'a.bin',
+        start: 10,
+        end: 20,
+      )).toList();
       expect(native.argsFor('beginRead')['start'], 10);
       expect(native.argsFor('beginRead')['end'], 20);
     });
 
-    test('validates the range locally instead of asking the platform', () async {
-      await expectLater(android.openRead(token(), 'a.bin', start: -1),
-          throwsA(isA<AnchorIoFailure>()));
-      await expectLater(android.openRead(token(), 'a.bin', start: 9, end: 2),
-          throwsA(isA<AnchorIoFailure>()));
-      expect(native.calls, isEmpty);
-    });
+    test(
+      'validates the range locally instead of asking the platform',
+      () async {
+        await expectLater(
+          android.openRead(token(), 'a.bin', start: -1),
+          throwsA(isA<AnchorIoFailure>()),
+        );
+        await expectLater(
+          android.openRead(token(), 'a.bin', start: 9, end: 2),
+          throwsA(isA<AnchorIoFailure>()),
+        );
+        expect(native.calls, isEmpty);
+      },
+    );
   });
 
   group('writing', () {
@@ -251,8 +288,11 @@ void main() {
       final sink = await android.openWrite(token(), 'a.bin');
       sink.add([1, 2]);
       sink.add([3]);
-      expect(native.methods, isNot(contains('writeChunk')),
-          reason: 'small writes should buffer, not spam the channel');
+      expect(
+        native.methods,
+        isNot(contains('writeChunk')),
+        reason: 'small writes should buffer, not spam the channel',
+      );
       await sink.close();
       await sink.done;
 
@@ -269,17 +309,19 @@ void main() {
       expect(native.methods.where((m) => m == 'writeChunk').length, 1);
     });
 
-    test('aborts the session when a chunk fails, so no half file is left',
-        () async {
-      native.handlers['beginWrite'] = (_) => 5;
-      native.handlers['writeChunk'] =
-          (_) => throw PlatformException(code: AnchorErrorCode.unavailable);
+    test(
+      'aborts the session when a chunk fails, so no half file is left',
+      () async {
+        native.handlers['beginWrite'] = (_) => 5;
+        native.handlers['writeChunk'] = (_) =>
+            throw PlatformException(code: AnchorErrorCode.unavailable);
 
-      final sink = await android.openWrite(token(), 'a.bin');
-      sink.add([1, 2, 3]);
-      await expectLater(sink.close(), throwsA(isA<AnchorUnavailable>()));
-      expect(native.argsFor('endWrite')['commit'], isFalse);
-    });
+        final sink = await android.openWrite(token(), 'a.bin');
+        sink.add([1, 2, 3]);
+        await expectLater(sink.close(), throwsA(isA<AnchorUnavailable>()));
+        expect(native.argsFor('endWrite')['commit'], isFalse);
+      },
+    );
 
     test('rejects writes after close', () async {
       native.handlers['beginWrite'] = (_) => 5;

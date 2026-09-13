@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - name: Analyze the whole workspace
+        run: flutter analyze
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Test the core package
+        run: flutter test
+        working-directory: packages/file_anchor
+      - name: Test the Android channel layer
+        run: flutter test
+        working-directory: packages/file_anchor_android
+      - name: Test the shared path engine
+        run: flutter test
+        working-directory: packages/file_anchor_path_io
+
+  build:
+    name: Build example (${{ matrix.target }})
+    needs: analyze
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing should not hide the others.
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: apk
+            command: flutter build apk --debug
+          # Windows and Linux cannot be built on a maintainer's Mac, so CI is
+          # the only thing that compiles them. Treat a red build here as real.
+          - os: windows-latest
+            target: windows
+            command: flutter build windows --debug
+          - os: ubuntu-latest
+            target: linux
+            command: flutter build linux --debug
+          - os: macos-latest
+            target: macos
+            command: flutter build macos --debug
+          - os: macos-latest
+            target: ios
+            command: flutter build ios --debug --no-codesign
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        if: matrix.target == 'apk'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Linux desktop toolchain
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - name: ${{ matrix.command }}
+        run: ${{ matrix.command }}
+        working-directory: example
+
+  publishable:
+    name: Publish dry-run
+    needs: analyze
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - file_anchor_platform_interface
+          - file_anchor_path_io
+          - file_anchor_android
+          - file_anchor_ios
+          - file_anchor_macos
+          - file_anchor_windows
+          - file_anchor_linux
+          - file_anchor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter pub publish --dry-run
+        working-directory: packages/${{ matrix.package }}

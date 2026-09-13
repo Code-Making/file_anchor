@@ -5,26 +5,13 @@ import 'package:file_anchor_path_io/file_anchor_path_io.dart';
 import 'package:file_anchor_platform_interface/file_anchor_platform_interface.dart';
 import 'package:win32/win32.dart';
 
-// Win32 ABI values, declared here on purpose.
-//
-// They are fixed by the platform and will never change, whereas how the `win32`
-// package groups its constants has moved between major versions. Declaring the
-// six we need locally keeps this file working across those reorganisations,
-// while still using `win32` for the functions and COM interfaces themselves.
-const int _sOk = 0;
-const int _coinitApartmentThreaded = 0x2;
-const int _coinitDisableOle1Dde = 0x4;
-const int _fosNoChangeDir = 0x8;
-const int _fosPickFolders = 0x20;
-const int _fosForceFilesystem = 0x40;
-const int _sigdnFilesysPath = 0x80058000;
-
-/// `HRESULT_FROM_WIN32(ERROR_CANCELLED)`, which is what the dialog returns when
-/// the user dismisses it. A cancellation is not an error.
+/// `HRESULT_FROM_WIN32(ERROR_CANCELLED)`, returned when the user dismisses the
+/// dialog. A cancellation is not an error, so it is the one failure that is
+/// turned back into a null result.
 const int _errorCancelledAsHresult = 0x800704C7;
 
-/// Returned by `GetCurrentPackageFullName` when the process is not in an MSIX
-/// package.
+/// Returned by `GetCurrentPackageFullName` when the process is not inside an
+/// MSIX package.
 const int _appmodelErrorNoPackage = 15700;
 
 /// Durable file and folder access on Windows.
@@ -56,26 +43,26 @@ final class FileAnchorWindows extends PathAnchorPlatform {
 
   /// Whether this process runs inside an MSIX package.
   ///
-  /// Determined once: it cannot change while the process lives.
+  /// Determined once; it cannot change while the process lives.
   bool get isPackaged => _packaged ??= _detectPackaged();
 
   static bool _detectPackaged() => using((Arena arena) {
-        final length = arena<Uint32>()..value = 0;
-        // With a null buffer this only reports the required length, and returns
-        // APPMODEL_ERROR_NO_PACKAGE for an unpackaged process.
-        final status = GetCurrentPackageFullName(length, nullptr);
-        return status != _appmodelErrorNoPackage;
-      });
+    final length = arena<Uint32>()..value = 0;
+    // With a null buffer this only reports the required length, and returns
+    // APPMODEL_ERROR_NO_PACKAGE for an unpackaged process.
+    final status = GetCurrentPackageFullName(length, null);
+    return status != _appmodelErrorNoPackage;
+  });
 
   @override
   AnchorCapabilities get capabilities => AnchorCapabilities(
-        canRandomAccessWrite: true,
-        canRename: true,
-        canQueryFreeSpace: false,
-        requiresExplicitScope: false,
-        // See the class comment: honest rather than optimistic.
-        persistsAcrossReboot: !isPackaged,
-      );
+    canRandomAccessWrite: true,
+    canRename: true,
+    canQueryFreeSpace: false,
+    requiresExplicitScope: false,
+    // See the class comment: honest rather than optimistic.
+    persistsAcrossReboot: !isPackaged,
+  );
 
   @override
   Future<ResolvedAnchor?> pickDirectory({String? purpose}) async =>
@@ -86,62 +73,49 @@ final class FileAnchorWindows extends PathAnchorPlatform {
     String? purpose,
     List<String>? mimeTypes,
   }) async =>
-      // Windows filters by extension, not MIME type. Mapping one to the other
-      // reliably is not possible, so the filter is skipped rather than guessed
-      // at; the user still picks a file, and callers can validate afterwards.
+      // Windows filters by extension, not MIME type, and mapping one onto the
+      // other reliably is not possible. The filter is skipped rather than
+      // guessed at; the user still picks a file and callers can validate after.
       _showDialog(pickFolders: false, purpose: purpose);
 
   /// Runs the common item dialog.
   ///
-  /// The dialog is modal and blocks this isolate while it is open, which is
-  /// inherent to `IModalWindow::Show`. The app window is blocked by the dialog
-  /// anyway, so there is nothing to render in the meantime.
+  /// The dialog is modal and blocks this isolate while open, which is inherent
+  /// to `IModalWindow::Show`. The app window is blocked by the dialog anyway,
+  /// so there is nothing to render in the meantime.
   ResolvedAnchor? _showDialog({required bool pickFolders, String? purpose}) {
-    // Returns S_FALSE when the thread is already initialised, in which case we
+    // Returns S_FALSE when this thread is already initialised, in which case we
     // must not uninitialise it on the way out.
-    final init = CoInitializeEx(
-      nullptr,
-      _coinitApartmentThreaded | _coinitDisableOle1Dde,
-    );
-    final weInitialised = init == _sOk;
+    final init = CoInitializeEx(COINIT_APARTMENTTHREADED);
+    final weInitialised = init == 0;
 
     try {
-      final dialog = FileOpenDialog.createInstance();
+      final dialog = createInstance<IFileOpenDialog>(FileOpenDialog);
       try {
         return using((Arena arena) {
-          final optionsPtr = arena<Uint32>();
-          _check(dialog.getOptions(optionsPtr), 'GetOptions');
-
-          var options = optionsPtr.value |
-              _fosForceFilesystem |
+          var options =
+              dialog.getOptions() |
+              FOS_FORCEFILESYSTEM |
               // Leave the process-wide working directory alone; a file dialog
               // silently changing it is a classic source of later bugs.
-              _fosNoChangeDir;
-          if (pickFolders) options |= _fosPickFolders;
-          _check(dialog.setOptions(options), 'SetOptions');
+              FOS_NOCHANGEDIR;
+          if (pickFolders) options |= FOS_PICKFOLDERS;
+          dialog.setOptions(FILEOPENDIALOGOPTIONS(options));
 
           if (purpose != null && purpose.isNotEmpty) {
-            dialog.setTitle(purpose.toNativeUtf16(allocator: arena));
+            dialog.setTitle(PCWSTR(purpose.toNativeUtf16(allocator: arena)));
           }
 
           // Owning the dialog to the app window keeps it from slipping behind.
-          final hr = dialog.show(GetActiveWindow());
-          if (hr == _errorCancelledAsHresult) return null;
-          _check(hr, 'Show');
+          dialog.show(GetActiveWindow());
 
-          final itemPtr = arena<Pointer<COMObject>>();
-          _check(dialog.getResult(itemPtr), 'GetResult');
-
-          final item = IShellItem(itemPtr.value);
+          final item = dialog.getResult();
+          if (item == null) return null;
           try {
-            final namePtr = arena<Pointer<Utf16>>();
-            _check(
-              item.getDisplayName(_sigdnFilesysPath, namePtr),
-              'GetDisplayName',
-            );
-            final path = namePtr.value.toDartString();
+            final name = item.getDisplayName(SIGDN_FILESYSPATH);
+            final path = name.toDartString();
             // The shell allocated this string; the arena did not.
-            CoTaskMemFree(namePtr.value.cast());
+            CoTaskMemFree(name);
             return describePath(path);
           } finally {
             item.release();
@@ -150,15 +124,16 @@ final class FileAnchorWindows extends PathAnchorPlatform {
       } finally {
         dialog.release();
       }
+    } on WindowsException catch (e) {
+      // The one expected failure: the user closed the dialog.
+      if (e.hr.toUnsigned(32) == _errorCancelledAsHresult) return null;
+      final hex = e.hr.toUnsigned(32).toRadixString(16).padLeft(8, '0');
+      throw AnchorIoFailure(
+        'The file dialog failed (0x$hex): ${e.toString()}',
+        e,
+      );
     } finally {
       if (weInitialised) CoUninitialize();
     }
-  }
-
-  /// Converts a failed `HRESULT` into a typed error.
-  static void _check(int hr, String what) {
-    if (!FAILED(hr)) return;
-    final hex = hr.toUnsigned(32).toRadixString(16).padLeft(8, '0');
-    throw AnchorIoFailure('IFileOpenDialog::$what failed (0x$hex).');
   }
 }

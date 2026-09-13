@@ -39,8 +39,11 @@ void main() {
       final anchor = MemoryAnchor();
       final sink = await anchor.openWrite('big.bin');
       sink.add([1, 2, 3]);
-      expect(await anchor.exists('big.bin'), isFalse,
-          reason: 'bytes must not land before close()');
+      expect(
+        await anchor.exists('big.bin'),
+        isFalse,
+        reason: 'bytes must not land before close()',
+      );
       await sink.close();
       await sink.done;
       expect(await anchor.readAsBytes('big.bin'), [1, 2, 3]);
@@ -80,28 +83,33 @@ void main() {
   });
 
   group('MemoryAnchor directory operations', () {
-    test('non-recursive listing collapses nested paths to their top folder',
-        () async {
-      final anchor = MemoryAnchor(files: {
-        'top.md': utf8.encode('a'),
-        'sub/inner.md': utf8.encode('b'),
-      });
-      final names = await anchor.list().map((e) => e.relativePath).toList();
-      expect(names, unorderedEquals(['top.md', 'sub']));
-    });
+    test(
+      'non-recursive listing collapses nested paths to their top folder',
+      () async {
+        final anchor = MemoryAnchor(
+          files: {'top.md': utf8.encode('a'), 'sub/inner.md': utf8.encode('b')},
+        );
+        final names = await anchor.list().map((e) => e.relativePath).toList();
+        expect(names, unorderedEquals(['top.md', 'sub']));
+      },
+    );
 
     test('recursive listing yields full relative paths', () async {
-      final anchor = MemoryAnchor(files: {
-        'top.md': utf8.encode('a'),
-        'sub/inner.md': utf8.encode('b'),
-      });
-      final names =
-          await anchor.list(recursive: true).map((e) => e.relativePath).toList();
+      final anchor = MemoryAnchor(
+        files: {'top.md': utf8.encode('a'), 'sub/inner.md': utf8.encode('b')},
+      );
+      final names = await anchor
+          .list(recursive: true)
+          .map((e) => e.relativePath)
+          .toList();
       expect(names, unorderedEquals(['top.md', 'sub/inner.md']));
     });
 
     test('entry name is the final segment of a relative path', () {
-      const entry = AnchorEntry(relativePath: 'notes/2026/jan.md', isDirectory: false);
+      const entry = AnchorEntry(
+        relativePath: 'notes/2026/jan.md',
+        isDirectory: false,
+      );
       expect(entry.name, 'jan.md');
     });
 
@@ -120,20 +128,33 @@ void main() {
   });
 
   group('error contract', () {
-    test('missing entries throw AnchorEntryNotFound, not a generic failure',
-        () async {
-      final anchor = MemoryAnchor();
-      await expectLater(
-          anchor.openRead('nope.txt'), throwsA(isA<AnchorEntryNotFound>()));
-      await expectLater(anchor.stat('nope.txt'), throwsA(isA<AnchorEntryNotFound>()));
-      await expectLater(anchor.delete('nope.txt'), throwsA(isA<AnchorEntryNotFound>()));
-    });
+    test(
+      'missing entries throw AnchorEntryNotFound, not a generic failure',
+      () async {
+        final anchor = MemoryAnchor();
+        await expectLater(
+          anchor.openRead('nope.txt'),
+          throwsA(isA<AnchorEntryNotFound>()),
+        );
+        await expectLater(
+          anchor.stat('nope.txt'),
+          throwsA(isA<AnchorEntryNotFound>()),
+        );
+        await expectLater(
+          anchor.delete('nope.txt'),
+          throwsA(isA<AnchorEntryNotFound>()),
+        );
+      },
+    );
 
     test('a released anchor reports revoked, so callers re-prompt', () async {
       final anchor = MemoryAnchor(files: {'a.txt': utf8.encode('x')});
       await anchor.release();
       expect(anchor.isReleased, isTrue);
-      await expectLater(anchor.readAsString('a.txt'), throwsA(isA<AnchorRevoked>()));
+      await expectLater(
+        anchor.readAsString('a.txt'),
+        throwsA(isA<AnchorRevoked>()),
+      );
     });
 
     test('failing() reproduces each recovery path', () async {
@@ -147,7 +168,9 @@ void main() {
         final anchor = MemoryAnchor.failing(failure);
         await expectLater(
           anchor.readAsString('a.txt'),
-          throwsA(predicate<Object>((e) => e.runtimeType == failure.runtimeType)),
+          throwsA(
+            predicate<Object>((e) => e.runtimeType == failure.runtimeType),
+          ),
         );
       }
     });
@@ -157,14 +180,11 @@ void main() {
       // re-prompt the user. Collapsing them makes apps nag over a pulled USB.
       const AnchorError unavailable = AnchorUnavailable();
       expect(unavailable, isNot(isA<AnchorRevoked>()));
-      expect(
-        switch (unavailable) {
-          AnchorUnavailable() => 'retry',
-          AnchorRevoked() => 'reprompt',
-          _ => 'other',
-        },
-        'retry',
-      );
+      expect(switch (unavailable) {
+        AnchorUnavailable() => 'retry',
+        AnchorRevoked() => 'reprompt',
+        _ => 'other',
+      }, 'retry');
     });
   });
 

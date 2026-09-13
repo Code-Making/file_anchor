@@ -28,8 +28,9 @@ abstract final class FileAnchor {
   ///
   /// Access is made durable before this returns, so the token survives a reboot.
   static Future<Anchor?> pickDirectory({String? purpose}) async {
-    final resolved =
-        await FileAnchorPlatform.instance.pickDirectory(purpose: purpose);
+    final resolved = await FileAnchorPlatform.instance.pickDirectory(
+      purpose: purpose,
+    );
     return resolved == null ? null : PlatformAnchor(resolved);
   }
 
@@ -41,8 +42,10 @@ abstract final class FileAnchor {
     String? purpose,
     List<String>? mimeTypes,
   }) async {
-    final resolved = await FileAnchorPlatform.instance
-        .pickFile(purpose: purpose, mimeTypes: mimeTypes);
+    final resolved = await FileAnchorPlatform.instance.pickFile(
+      purpose: purpose,
+      mimeTypes: mimeTypes,
+    );
     return resolved == null ? null : PlatformAnchor(resolved);
   }
 
@@ -56,8 +59,9 @@ abstract final class FileAnchor {
   /// Check [Anchor.isStale] on success: the token may have been repaired and is
   /// then worth re-persisting.
   static Future<Anchor> resolve(String token) async {
-    final resolved =
-        await FileAnchorPlatform.instance.resolve(AnchorToken.parse(token));
+    final resolved = await FileAnchorPlatform.instance.resolve(
+      AnchorToken.parse(token),
+    );
     return PlatformAnchor(resolved);
   }
 

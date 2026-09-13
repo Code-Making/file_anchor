@@ -40,23 +40,27 @@ void main() {
       await expectLater(platform.resolve(rootToken), completes);
     });
 
-    test('a deleted folder whose parent survives is stale, so re-prompt',
-        () async {
-      final child = Directory(p.join(root.path, 'vault'))..createSync();
-      final token = tokenFor(child.path);
-      child.deleteSync();
-      await expectLater(platform.resolve(token), throwsA(isA<AnchorStale>()));
-    });
+    test(
+      'a deleted folder whose parent survives is stale, so re-prompt',
+      () async {
+        final child = Directory(p.join(root.path, 'vault'))..createSync();
+        final token = tokenFor(child.path);
+        child.deleteSync();
+        await expectLater(platform.resolve(token), throwsA(isA<AnchorStale>()));
+      },
+    );
 
-    test('a detached volume is unavailable, so retry instead of re-prompting',
-        () async {
-      // No ancestor exists, which is what an unplugged drive looks like.
-      final token = tokenFor(p.join('/', 'Volumes', 'NotMounted', 'Vault'));
-      await expectLater(
-        platform.resolve(token),
-        throwsA(isA<AnchorUnavailable>()),
-      );
-    });
+    test(
+      'a detached volume is unavailable, so retry instead of re-prompting',
+      () async {
+        // No ancestor exists, which is what an unplugged drive looks like.
+        final token = tokenFor(p.join('/', 'Volumes', 'NotMounted', 'Vault'));
+        await expectLater(
+          platform.resolve(token),
+          throwsA(isA<AnchorUnavailable>()),
+        );
+      },
+    );
 
     test('rejects a token belonging to another platform', () async {
       final saf = AnchorToken.of(AnchorKind.saf, 'content://x/tree/y');
@@ -86,11 +90,13 @@ void main() {
       );
     });
 
-    test('accepts backslashes, so Windows-style callers work everywhere',
-        () async {
-      await platform.createFile(rootToken, r'sub\deep.txt');
-      expect(await platform.exists(rootToken, 'sub/deep.txt'), isTrue);
-    });
+    test(
+      'accepts backslashes, so Windows-style callers work everywhere',
+      () async {
+        await platform.createFile(rootToken, r'sub\deep.txt');
+        expect(await platform.exists(rootToken, 'sub/deep.txt'), isTrue);
+      },
+    );
 
     test('an empty relative path addresses the anchor root', () async {
       expect(await platform.exists(rootToken, ''), isTrue);
@@ -112,15 +118,19 @@ void main() {
       );
     });
 
-    test('recursive yields forward-slash relative paths on every platform',
-        () async {
-      final entries = await platform.list(rootToken, recursive: true).toList();
-      expect(
-        entries.map((e) => e.relativePath),
-        unorderedEquals(['top.md', 'sub', 'sub/inner.md']),
-      );
-      expect(entries.every((e) => !e.relativePath.contains(r'\')), isTrue);
-    });
+    test(
+      'recursive yields forward-slash relative paths on every platform',
+      () async {
+        final entries = await platform
+            .list(rootToken, recursive: true)
+            .toList();
+        expect(
+          entries.map((e) => e.relativePath),
+          unorderedEquals(['top.md', 'sub', 'sub/inner.md']),
+        );
+        expect(entries.every((e) => !e.relativePath.contains(r'\')), isTrue);
+      },
+    );
 
     test('reports sizes for files and none for directories', () async {
       final entries = await platform.list(rootToken, recursive: true).toList();
@@ -144,8 +154,10 @@ void main() {
     test('createFile makes missing parents, mkdirs-style', () async {
       final entry = await platform.createFile(rootToken, 'a/b/c/note.md');
       expect(entry.relativePath, 'a/b/c/note.md');
-      expect(File(p.join(root.path, 'a', 'b', 'c', 'note.md')).existsSync(),
-          isTrue);
+      expect(
+        File(p.join(root.path, 'a', 'b', 'c', 'note.md')).existsSync(),
+        isTrue,
+      );
     });
 
     test('createFile is idempotent and preserves existing content', () async {
@@ -237,16 +249,25 @@ void main() {
       sink.add(utf8.encode('abcdefghij'));
       await sink.close();
 
-      final stream = await platform.openRead(rootToken, 'a.txt', start: 2, end: 5);
+      final stream = await platform.openRead(
+        rootToken,
+        'a.txt',
+        start: 2,
+        end: 5,
+      );
       final bytes = (await stream.toList()).expand((c) => c).toList();
       expect(utf8.decode(bytes), 'cde');
     });
 
     test('validates the range locally', () async {
-      await expectLater(platform.openRead(rootToken, 'a.txt', start: -1),
-          throwsA(isA<AnchorIoFailure>()));
-      await expectLater(platform.openRead(rootToken, 'a.txt', start: 9, end: 2),
-          throwsA(isA<AnchorIoFailure>()));
+      await expectLater(
+        platform.openRead(rootToken, 'a.txt', start: -1),
+        throwsA(isA<AnchorIoFailure>()),
+      );
+      await expectLater(
+        platform.openRead(rootToken, 'a.txt', start: 9, end: 2),
+        throwsA(isA<AnchorIoFailure>()),
+      );
     });
 
     test('streams a large file in chunks, not one buffer', () async {

@@ -35,14 +35,14 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
   /// Capabilities reported for anchors on this platform.
   @protected
   AnchorCapabilities get capabilities => const AnchorCapabilities(
-        canRandomAccessWrite: true,
-        canRename: true,
-        // dart:io exposes no portable free-space query, so say so rather than
-        // guessing.
-        canQueryFreeSpace: false,
-        requiresExplicitScope: false,
-        persistsAcrossReboot: true,
-      );
+    canRandomAccessWrite: true,
+    canRename: true,
+    // dart:io exposes no portable free-space query, so say so rather than
+    // guessing.
+    canQueryFreeSpace: false,
+    requiresExplicitScope: false,
+    persistsAcrossReboot: true,
+  );
 
   /// Builds a [ResolvedAnchor] for an absolute [path], without touching disk.
   @protected
@@ -180,7 +180,9 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
       await assertReachable(root);
     }
 
-    final stream = Directory(root).list(recursive: recursive, followLinks: false);
+    final stream = Directory(
+      root,
+    ).list(recursive: recursive, followLinks: false);
     await for (final entity in stream) {
       yield await _entryFor(root, entity.path, entity: entity);
     }
@@ -191,7 +193,8 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
     String target, {
     FileSystemEntity? entity,
   }) async {
-    final resolved = entity ??
+    final resolved =
+        entity ??
         (await FileSystemEntity.isDirectory(target)
             ? Directory(target)
             : File(target));
@@ -203,7 +206,8 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
       // the whole walk.
       stat = null;
     }
-    final isDirectory = stat?.type == FileSystemEntityType.directory ||
+    final isDirectory =
+        stat?.type == FileSystemEntityType.directory ||
         (stat == null && resolved is Directory);
     return AnchorEntry(
       relativePath: _relativize(root, target),
@@ -307,7 +311,9 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
     int? end,
   }) async {
     if (start != null && start < 0) {
-      throw AnchorIoFailure('openRead start must not be negative (got $start).');
+      throw AnchorIoFailure(
+        'openRead start must not be negative (got $start).',
+      );
     }
     if (start != null && end != null && end < start) {
       throw AnchorIoFailure('openRead end ($end) is before start ($start).');
@@ -324,9 +330,10 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
       default:
         break;
     }
-    return File(target)
-        .openRead(start, end)
-        .handleError((Object error, StackTrace trace) {
+    return File(target).openRead(start, end).handleError((
+      Object error,
+      StackTrace trace,
+    ) {
       if (error is FileSystemException) {
         throw _mapFileSystemException(error, target);
       }
@@ -344,9 +351,7 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
     final file = File(target);
     try {
       await file.parent.create(recursive: true);
-      return file.openWrite(
-        mode: append ? FileMode.append : FileMode.write,
-      );
+      return file.openWrite(mode: append ? FileMode.append : FileMode.write);
     } on FileSystemException catch (e) {
       throw _mapFileSystemException(e, target);
     }
@@ -370,9 +375,12 @@ abstract base class PathAnchorPlatform extends FileAnchorPlatform {
     // 2/3 ENOENT-ish, 13/5 EACCES/EPERM, 19/53 no such device.
     return switch (code) {
       2 || 3 => AnchorEntryNotFound('No entry at "$target": $message', e),
-      13 || 1 || 5 => AnchorPermissionDenied('Refused for "$target": $message', e),
-      19 || 53 || 6 =>
-        AnchorUnavailable('The volume for "$target" is gone: $message', e),
+      13 ||
+      1 ||
+      5 => AnchorPermissionDenied('Refused for "$target": $message', e),
+      19 ||
+      53 ||
+      6 => AnchorUnavailable('The volume for "$target" is gone: $message', e),
       28 => AnchorQuotaExceeded('No space left writing "$target".', e),
       _ => AnchorIoFailure('I/O failure for "$target": $message', e),
     };

@@ -16,10 +16,10 @@ final class ChannelWriteSink implements StreamSink<List<int>> {
     required Future<void> Function() commit,
     required Future<void> Function() abort,
     int flushThreshold = defaultFlushThreshold,
-  })  : _writeChunk = writeChunk,
-        _commit = commit,
-        _abort = abort,
-        _flushThreshold = flushThreshold;
+  }) : _writeChunk = writeChunk,
+       _commit = commit,
+       _abort = abort,
+       _flushThreshold = flushThreshold;
 
   /// Bytes buffered before a flush is queued.
   static const int defaultFlushThreshold = 256 * 1024;
@@ -49,13 +49,15 @@ final class ChannelWriteSink implements StreamSink<List<int>> {
   void _queueFlush() {
     if (_buffer.isEmpty) return;
     final bytes = _buffer.takeBytes();
-    _chain = _chain.then((_) {
-      if (_failure != null) return null;
-      return _writeChunk(bytes);
-    }).catchError((Object error, StackTrace trace) {
-      _failure ??= error;
-      _failureTrace ??= trace;
-    });
+    _chain = _chain
+        .then((_) {
+          if (_failure != null) return null;
+          return _writeChunk(bytes);
+        })
+        .catchError((Object error, StackTrace trace) {
+          _failure ??= error;
+          _failureTrace ??= trace;
+        });
   }
 
   @override

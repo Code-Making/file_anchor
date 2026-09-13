@@ -10,34 +10,36 @@ Map<String, Object?> asMap(Object? value, String context) {
 
 /// Reads an optional epoch-millis field as a [DateTime].
 DateTime? _modified(Object? millis) => switch (millis) {
-      final int m when m > 0 => DateTime.fromMillisecondsSinceEpoch(m),
-      _ => null,
-    };
+  final int m when m > 0 => DateTime.fromMillisecondsSinceEpoch(m),
+  _ => null,
+};
 
 /// Deserialises one directory entry.
 AnchorEntry anchorEntryFromMap(Map<String, Object?> map) => AnchorEntry(
-      relativePath: map['relativePath'] as String? ??
-          (throw const AnchorIoFailure('Entry is missing relativePath.')),
-      isDirectory: map['isDirectory'] as bool? ?? false,
-      size: map['size'] as int?,
-      modified: _modified(map['modified']),
-      mimeType: map['mimeType'] as String?,
-    );
+  relativePath:
+      map['relativePath'] as String? ??
+      (throw const AnchorIoFailure('Entry is missing relativePath.')),
+  isDirectory: map['isDirectory'] as bool? ?? false,
+  size: map['size'] as int?,
+  modified: _modified(map['modified']),
+  mimeType: map['mimeType'] as String?,
+);
 
 /// Deserialises entry metadata.
 AnchorStat anchorStatFromMap(Map<String, Object?> map) => AnchorStat(
-      isDirectory: map['isDirectory'] as bool? ?? false,
-      size: map['size'] as int?,
-      modified: _modified(map['modified']),
-      mimeType: map['mimeType'] as String?,
-    );
+  isDirectory: map['isDirectory'] as bool? ?? false,
+  size: map['size'] as int?,
+  modified: _modified(map['modified']),
+  mimeType: map['mimeType'] as String?,
+);
 
 /// Deserialises a pick or resolve result.
 ///
 /// The native side returns a bare `content://` URI; the durable token is built
 /// here, so the Kotlin layer never needs to know the token encoding.
 ResolvedAnchor resolvedAnchorFromMap(Map<String, Object?> map) {
-  final uri = map['uri'] as String? ??
+  final uri =
+      map['uri'] as String? ??
       (throw const AnchorIoFailure('Result is missing uri.'));
   return ResolvedAnchor(
     token: AnchorToken.of(AnchorKind.saf, uri),

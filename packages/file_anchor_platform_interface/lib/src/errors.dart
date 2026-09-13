@@ -7,6 +7,7 @@
 /// Because this hierarchy is `sealed`, a `switch` over it is exhaustive and the
 /// analyzer will tell you when a new case appears.
 sealed class AnchorError implements Exception {
+  /// Creates an error with a [message] and optional underlying [cause].
   const AnchorError(this.message, [this.cause]);
 
   /// Human-readable explanation, safe to log. Never contains file contents.
@@ -16,8 +17,9 @@ sealed class AnchorError implements Exception {
   final Object? cause;
 
   @override
-  String toString() =>
-      cause == null ? '$runtimeType: $message' : '$runtimeType: $message ($cause)';
+  String toString() => cause == null
+      ? '$runtimeType: $message'
+      : '$runtimeType: $message ($cause)';
 }
 
 /// The anchor's target moved or was renamed, but access may be recoverable.
@@ -25,6 +27,7 @@ sealed class AnchorError implements Exception {
 /// iOS can often repair a stale bookmark automatically. Prefer refreshing the
 /// token over re-prompting the user.
 final class AnchorStale extends AnchorError {
+  /// Creates a stale-anchor error.
   const AnchorStale([super.message = 'The anchor is stale.', super.cause]);
 }
 
@@ -32,7 +35,11 @@ final class AnchorStale extends AnchorError {
 ///
 /// There is no recovery: you must ask the user to pick the location again.
 final class AnchorRevoked extends AnchorError {
-  const AnchorRevoked([super.message = 'Access to the anchor was revoked.', super.cause]);
+  /// Creates a revoked-access error.
+  const AnchorRevoked([
+    super.message = 'Access to the anchor was revoked.',
+    super.cause,
+  ]);
 }
 
 /// The target exists but is not reachable right now.
@@ -42,12 +49,20 @@ final class AnchorRevoked extends AnchorError {
 /// re-prompt the user. Conflating the two is why apps nag people to re-pick a
 /// folder merely because a drive was unplugged.
 final class AnchorUnavailable extends AnchorError {
-  const AnchorUnavailable([super.message = 'The anchor is currently unavailable.', super.cause]);
+  /// Creates an unreachable-target error.
+  const AnchorUnavailable([
+    super.message = 'The anchor is currently unavailable.',
+    super.cause,
+  ]);
 }
 
 /// The OS refused the operation outright.
 final class AnchorPermissionDenied extends AnchorError {
-  const AnchorPermissionDenied([super.message = 'Permission denied.', super.cause]);
+  /// Creates a permission-denied error.
+  const AnchorPermissionDenied([
+    super.message = 'Permission denied.',
+    super.cause,
+  ]);
 }
 
 /// The platform's limit on persisted grants was reached.
@@ -55,11 +70,16 @@ final class AnchorPermissionDenied extends AnchorError {
 /// Android caps persistable URI permissions per app (commonly 128, 512 on newer
 /// releases). Call `FileAnchor.releaseUnused()` to reap orphaned grants.
 final class AnchorQuotaExceeded extends AnchorError {
-  const AnchorQuotaExceeded([super.message = 'Persisted grant limit reached.', super.cause]);
+  /// Creates a grant-limit error.
+  const AnchorQuotaExceeded([
+    super.message = 'Persisted grant limit reached.',
+    super.cause,
+  ]);
 }
 
 /// No entry with that name exists inside the anchor.
 final class AnchorEntryNotFound extends AnchorError {
+  /// Creates a missing-entry error.
   const AnchorEntryNotFound([super.message = 'Entry not found.', super.cause]);
 }
 
@@ -68,15 +88,24 @@ final class AnchorEntryNotFound extends AnchorError {
 /// Check `Anchor.capabilities` before calling optional operations instead of
 /// catching this.
 final class AnchorUnsupported extends AnchorError {
-  const AnchorUnsupported([super.message = 'Operation not supported here.', super.cause]);
+  /// Creates an unsupported-operation error.
+  const AnchorUnsupported([
+    super.message = 'Operation not supported here.',
+    super.cause,
+  ]);
 }
 
 /// The token string was not produced by this package, or its version is unknown.
 final class AnchorTokenMalformed extends AnchorError {
-  const AnchorTokenMalformed([super.message = 'Malformed anchor token.', super.cause]);
+  /// Creates a malformed-token error.
+  const AnchorTokenMalformed([
+    super.message = 'Malformed anchor token.',
+    super.cause,
+  ]);
 }
 
 /// A read or write failed for a reason none of the above describes.
 final class AnchorIoFailure extends AnchorError {
+  /// Creates a general I/O failure.
   const AnchorIoFailure([super.message = 'I/O failure.', super.cause]);
 }

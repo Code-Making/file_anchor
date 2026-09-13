@@ -22,19 +22,24 @@ enum AnchorKind {
   /// An in-memory anchor, used by `MemoryAnchor` in tests.
   memory('m');
 
+  /// Associates a kind with its single-character [code].
   const AnchorKind(this.code);
 
   /// Single-character discriminator used in the encoded token.
   final String code;
 
+  /// Looks up a kind by its [code], as written in an encoded token.
+  ///
+  /// Throws [AnchorTokenMalformed] for a code this build does not know, which
+  /// is what a token written by a newer version looks like.
   static AnchorKind fromCode(String code) => switch (code) {
-        's' => AnchorKind.saf,
-        'b' => AnchorKind.bookmark,
-        'p' => AnchorKind.path,
-        'f' => AnchorKind.futureAccessList,
-        'm' => AnchorKind.memory,
-        _ => throw AnchorTokenMalformed('Unknown anchor kind code "$code".'),
-      };
+    's' => AnchorKind.saf,
+    'b' => AnchorKind.bookmark,
+    'p' => AnchorKind.path,
+    'f' => AnchorKind.futureAccessList,
+    'm' => AnchorKind.memory,
+    _ => throw AnchorTokenMalformed('Unknown anchor kind code "$code".'),
+  };
 }
 
 /// An opaque, durable reference to a user-chosen file or folder.
@@ -60,7 +65,9 @@ final class AnchorToken {
   factory AnchorToken.parse(String raw) {
     final parts = raw.split('.');
     if (parts.length != 3) {
-      throw const AnchorTokenMalformed('Expected three dot-separated segments.');
+      throw const AnchorTokenMalformed(
+        'Expected three dot-separated segments.',
+      );
     }
     if (parts[0] != _version) {
       throw AnchorTokenMalformed(

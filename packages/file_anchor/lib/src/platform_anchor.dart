@@ -61,15 +61,13 @@ final class PlatformAnchor implements Anchor {
     String relativePath, {
     int? start,
     int? end,
-  }) =>
-      _platform.openRead(_token, relativePath, start: start, end: end);
+  }) => _platform.openRead(_token, relativePath, start: start, end: end);
 
   @override
   Future<StreamSink<List<int>>> openWrite(
     String relativePath, {
     bool append = false,
-  }) =>
-      _platform.openWrite(_token, relativePath, append: append);
+  }) => _platform.openWrite(_token, relativePath, append: append);
 
   @override
   Future<T> use<T>(Future<T> Function() body) async {

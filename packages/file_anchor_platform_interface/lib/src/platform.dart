@@ -42,8 +42,10 @@ abstract class FileAnchorPlatform extends PlatformInterface {
   /// Shows the native file picker and takes durable access to the result.
   ///
   /// Returns null if the user cancelled.
-  Future<ResolvedAnchor?> pickFile({String? purpose, List<String>? mimeTypes}) =>
-      throw UnimplementedError('pickFile() has not been implemented.');
+  Future<ResolvedAnchor?> pickFile({
+    String? purpose,
+    List<String>? mimeTypes,
+  }) => throw UnimplementedError('pickFile() has not been implemented.');
 
   /// Re-establishes access to a previously persisted [token].
   Future<ResolvedAnchor> resolve(AnchorToken token) =>
@@ -80,8 +82,7 @@ abstract class FileAnchorPlatform extends PlatformInterface {
     AnchorToken token,
     String relativePath, {
     String? mimeType,
-  }) =>
-      throw UnimplementedError('createFile() has not been implemented.');
+  }) => throw UnimplementedError('createFile() has not been implemented.');
 
   /// Creates a directory at [relativePath] under [token].
   Future<AnchorEntry> createDirectory(AnchorToken token, String relativePath) =>
@@ -110,8 +111,7 @@ abstract class FileAnchorPlatform extends PlatformInterface {
     String relativePath, {
     int? start,
     int? end,
-  }) =>
-      throw UnimplementedError('openRead() has not been implemented.');
+  }) => throw UnimplementedError('openRead() has not been implemented.');
 
   /// Opens a sink writing into [relativePath].
   ///
@@ -121,8 +121,7 @@ abstract class FileAnchorPlatform extends PlatformInterface {
     AnchorToken token,
     String relativePath, {
     bool append = false,
-  }) =>
-      throw UnimplementedError('openWrite() has not been implemented.');
+  }) => throw UnimplementedError('openWrite() has not been implemented.');
 }
 
 /// Fallback used on platforms with no registered implementation.

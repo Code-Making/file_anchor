@@ -9,10 +9,10 @@ environment:
   flutter: ">=3.24.0"
 
 dependencies:
-  flutter:
-    sdk: flutter
   file_anchor_path_io: ^0.1.0
   file_anchor_platform_interface: ^0.1.0
+  flutter:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:

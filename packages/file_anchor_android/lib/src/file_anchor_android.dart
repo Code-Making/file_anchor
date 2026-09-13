@@ -20,7 +20,7 @@ import 'codecs.dart';
 final class FileAnchorAndroid extends FileAnchorPlatform {
   /// Creates the implementation, optionally over a test [channel].
   FileAnchorAndroid({@visibleForTesting MethodChannel? channel})
-      : _channel = channel ?? const MethodChannel(channelName);
+    : _channel = channel ?? const MethodChannel(channelName);
 
   /// The method channel shared with the Kotlin plugin.
   static const String channelName = 'com.codemaking.file_anchor/methods';
@@ -61,8 +61,7 @@ final class FileAnchorAndroid extends FileAnchorPlatform {
   Future<Map<String, Object?>> _map(
     String method, [
     Map<String, Object?>? args,
-  ]) async =>
-      asMap(await _raw(method, args), method);
+  ]) async => asMap(await _raw(method, args), method);
 
   Future<Map<String, Object?>?> _mapOrNull(
     String method, [
@@ -75,20 +74,26 @@ final class FileAnchorAndroid extends FileAnchorPlatform {
   Future<int> _int(String method, [Map<String, Object?>? args]) async {
     final result = await _raw(method, args);
     if (result is int) return result;
-    throw AnchorIoFailure('$method returned ${result.runtimeType}, wanted int.');
+    throw AnchorIoFailure(
+      '$method returned ${result.runtimeType}, wanted int.',
+    );
   }
 
   Future<bool> _bool(String method, [Map<String, Object?>? args]) async {
     final result = await _raw(method, args);
     if (result is bool) return result;
-    throw AnchorIoFailure('$method returned ${result.runtimeType}, wanted bool.');
+    throw AnchorIoFailure(
+      '$method returned ${result.runtimeType}, wanted bool.',
+    );
   }
 
   Future<Uint8List> _bytes(String method, [Map<String, Object?>? args]) async {
     final result = await _raw(method, args);
     if (result is Uint8List) return result;
     if (result == null) return Uint8List(0);
-    throw AnchorIoFailure('$method returned ${result.runtimeType}, wanted bytes.');
+    throw AnchorIoFailure(
+      '$method returned ${result.runtimeType}, wanted bytes.',
+    );
   }
 
   Future<void> _void(String method, [Map<String, Object?>? args]) =>
@@ -142,16 +147,15 @@ final class FileAnchorAndroid extends FileAnchorPlatform {
 
   @override
   Future<ResolvedAnchor> resolve(AnchorToken token) async =>
-      resolvedAnchorFromMap(
-        await _map('resolve', {'uri': _uriOf(token)}),
-      );
+      resolvedAnchorFromMap(await _map('resolve', {'uri': _uriOf(token)}));
 
   @override
   Future<void> release(AnchorToken token) async =>
       _void('release', {'uri': _uriOf(token)});
 
   @override
-  Future<int> releaseUnused(Set<AnchorToken> keep) async => _int('releaseUnused', {
+  Future<int> releaseUnused(Set<AnchorToken> keep) async =>
+      _int('releaseUnused', {
         'keep': [
           for (final token in keep)
             if (token.kind == AnchorKind.saf) token.payload,
@@ -190,43 +194,41 @@ final class FileAnchorAndroid extends FileAnchorPlatform {
     AnchorToken token,
     String relativePath, {
     String? mimeType,
-  }) async =>
-      anchorEntryFromMap(await _map('createFile', {
-        'uri': _uriOf(token),
-        'relativePath': relativePath,
-        'mimeType': mimeType,
-      }));
+  }) async => anchorEntryFromMap(
+    await _map('createFile', {
+      'uri': _uriOf(token),
+      'relativePath': relativePath,
+      'mimeType': mimeType,
+    }),
+  );
 
   @override
   Future<AnchorEntry> createDirectory(
     AnchorToken token,
     String relativePath,
-  ) async =>
-      anchorEntryFromMap(await _map('createDirectory', {
-        'uri': _uriOf(token),
-        'relativePath': relativePath,
-      }));
+  ) async => anchorEntryFromMap(
+    await _map('createDirectory', {
+      'uri': _uriOf(token),
+      'relativePath': relativePath,
+    }),
+  );
 
   @override
   Future<void> delete(AnchorToken token, String relativePath) async =>
-      _void('delete', {
-        'uri': _uriOf(token),
-        'relativePath': relativePath,
-      });
+      _void('delete', {'uri': _uriOf(token), 'relativePath': relativePath});
 
   @override
   Future<bool> exists(AnchorToken token, String relativePath) async =>
-      _bool('exists', {
-        'uri': _uriOf(token),
-        'relativePath': relativePath,
-      });
+      _bool('exists', {'uri': _uriOf(token), 'relativePath': relativePath});
 
   @override
   Future<AnchorStat> stat(AnchorToken token, String relativePath) async =>
-      anchorStatFromMap(await _map('stat', {
-        'uri': _uriOf(token),
-        'relativePath': relativePath,
-      }));
+      anchorStatFromMap(
+        await _map('stat', {
+          'uri': _uriOf(token),
+          'relativePath': relativePath,
+        }),
+      );
 
   // -------------------------------------------------------------------- bytes
 
@@ -238,7 +240,9 @@ final class FileAnchorAndroid extends FileAnchorPlatform {
     int? end,
   }) async {
     if (start != null && start < 0) {
-      throw AnchorIoFailure('openRead start must not be negative (got $start).');
+      throw AnchorIoFailure(
+        'openRead start must not be negative (got $start).',
+      );
     }
     if (start != null && end != null && end < start) {
       throw AnchorIoFailure('openRead end ($end) is before start ($start).');
@@ -281,10 +285,8 @@ final class FileAnchorAndroid extends FileAnchorPlatform {
       'append': append,
     });
     return ChannelWriteSink(
-      writeChunk: (bytes) => _void('writeChunk', {
-        'session': session,
-        'bytes': bytes,
-      }),
+      writeChunk: (bytes) =>
+          _void('writeChunk', {'session': session, 'bytes': bytes}),
       commit: () => _void('endWrite', {'session': session, 'commit': true}),
       abort: () => _void('endWrite', {'session': session, 'commit': false}),
     );

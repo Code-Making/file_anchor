@@ -29,19 +29,19 @@ final class MemoryAnchor implements Anchor {
     Map<String, List<int>>? files,
     Set<String>? directories,
     this.capabilities = _memoryCapabilities,
-  })  : _files = {
-          for (final e in (files ?? const {}).entries)
-            _normalize(e.key): Uint8List.fromList(e.value),
-        },
-        _directories = {...?directories?.map(_normalize)},
-        _failure = null;
+  }) : _files = {
+         for (final e in (files ?? const {}).entries)
+           _normalize(e.key): Uint8List.fromList(e.value),
+       },
+       _directories = {...?directories?.map(_normalize)},
+       _failure = null;
 
   /// Creates an anchor where every operation throws [error].
   MemoryAnchor.failing(AnchorError error, {this.displayName = 'memory'})
-      : _files = {},
-        _directories = {},
-        capabilities = _memoryCapabilities,
-        _failure = error;
+    : _files = {},
+      _directories = {},
+      capabilities = _memoryCapabilities,
+      _failure = error;
 
   static const AnchorCapabilities _memoryCapabilities = AnchorCapabilities(
     canRandomAccessWrite: false,
@@ -132,7 +132,10 @@ final class MemoryAnchor implements Anchor {
   }
 
   @override
-  Future<AnchorEntry> createFile(String relativePath, {String? mimeType}) async {
+  Future<AnchorEntry> createFile(
+    String relativePath, {
+    String? mimeType,
+  }) async {
     _check();
     final path = _normalize(relativePath);
     _files.putIfAbsent(path, () => Uint8List(0));
@@ -158,8 +161,9 @@ final class MemoryAnchor implements Anchor {
     final path = _normalize(relativePath);
     final removedFile = _files.remove(path) != null;
     final removedDir = _directories.remove(path);
-    final removedChildren =
-        _files.keys.where((k) => k.startsWith('$path/')).toList();
+    final removedChildren = _files.keys
+        .where((k) => k.startsWith('$path/'))
+        .toList();
     for (final child in removedChildren) {
       _files.remove(child);
     }
@@ -198,7 +202,9 @@ final class MemoryAnchor implements Anchor {
     _check();
     final path = _normalize(relativePath);
     final bytes = _files[path];
-    if (bytes == null) throw AnchorEntryNotFound('No entry at "$relativePath".');
+    if (bytes == null) {
+      throw AnchorEntryNotFound('No entry at "$relativePath".');
+    }
     final from = _bound(start ?? 0, 0, bytes.length);
     final to = _bound(end ?? bytes.length, from, bytes.length);
     // Emit in chunks so consumers exercise real streaming behaviour.

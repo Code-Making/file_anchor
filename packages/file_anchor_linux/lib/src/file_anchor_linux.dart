@@ -47,8 +47,7 @@ final class FileAnchorLinux extends PathAnchorPlatform {
   Future<ResolvedAnchor?> pickFile({
     String? purpose,
     List<String>? mimeTypes,
-  }) =>
-      _openFile(directory: false, purpose: purpose);
+  }) => _openFile(directory: false, purpose: purpose);
 
   Future<ResolvedAnchor?> _openFile({
     required bool directory,
@@ -160,8 +159,9 @@ final class FileAnchorLinux extends PathAnchorPlatform {
   /// A unique name such as `:1.42` becomes `1_42`: the leading colon is dropped
   /// and dots become underscores, because a D-Bus path segment allows neither.
   static String _busNameSegment(String uniqueName) {
-    final trimmed =
-        uniqueName.startsWith(':') ? uniqueName.substring(1) : uniqueName;
+    final trimmed = uniqueName.startsWith(':')
+        ? uniqueName.substring(1)
+        : uniqueName;
     return trimmed.replaceAll('.', '_');
   }
 }

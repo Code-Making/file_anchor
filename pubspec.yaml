@@ -14,3 +14,6 @@ workspace:
   - packages/file_anchor_macos
   - packages/file_anchor_windows
   - example
+
+dev_dependencies:
+  flutter_lints: ^6.0.0

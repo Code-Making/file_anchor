@@ -5,6 +5,7 @@
 /// unified and reports the rest here, so callers can branch deliberately
 /// instead of discovering a silent no-op in production.
 final class AnchorCapabilities {
+  /// Creates a capability report.
   const AnchorCapabilities({
     required this.canRandomAccessWrite,
     required this.canRename,
@@ -46,7 +47,8 @@ final class AnchorCapabilities {
   );
 
   @override
-  String toString() => 'AnchorCapabilities('
+  String toString() =>
+      'AnchorCapabilities('
       'randomAccessWrite: $canRandomAccessWrite, '
       'rename: $canRename, '
       'freeSpace: $canQueryFreeSpace, '
